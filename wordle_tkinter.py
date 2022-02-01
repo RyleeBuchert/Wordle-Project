@@ -6,6 +6,7 @@ def get_input():
     wordle_word = wordle_input.get()
     for i in range(len(wordle_word)):
         box_list.iloc[current_row][i].insert(INSERT, wordle_word[i])
+        box_list.iloc[current_row][i].configure(bg='green')
     current_row += 1
 
 if __name__ == "__main__":
@@ -14,7 +15,6 @@ if __name__ == "__main__":
     wordle_window.title('WORDLE')
     wordle_window.geometry('270x450')
 
-    current_row = 0
     box_list = pd.DataFrame(index=range(6), columns=range(5))
     for i in range(6):
         for j in range(5):
@@ -22,6 +22,7 @@ if __name__ == "__main__":
             grid_box.grid(row= i, column= j, padx=5, pady=5)
             box_list.iloc[i][j] = grid_box
 
+    current_row = 0
     wordle_input = StringVar()
 
     guess_label = Label(wordle_window, text="Input Word")
