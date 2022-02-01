@@ -1,4 +1,5 @@
 import random
+import tkinter
 
 class Wordle:
 
@@ -7,6 +8,7 @@ class Wordle:
             self.word_dict = [x.replace('\n','') for x in file.readlines()]
         self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
         self.num_guesses = 6
+        self.guesses = []
 
     def guess_word(self, input):
         if self.num_guesses == 0:
@@ -19,6 +21,7 @@ class Wordle:
         elif len(input) < 5:
             return 'Invalid Input --- Too Small'
         
+        self.guesses.append(input)
         results_list = [0]*len(input)
         for i in range(len(input)):
             if input[i] == self.key_word[i]:
@@ -37,5 +40,5 @@ class Wordle:
 
 if __name__ == "__main__":
     
-    new_game = Worldle()
-    new_game.guess_word("ADIEU")
+    new_game = Wordle()
+    new_game.guess_word("chair")
