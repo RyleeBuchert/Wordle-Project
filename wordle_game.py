@@ -1,5 +1,5 @@
+from tkinter import *
 import random
-import tkinter
 
 class Wordle:
 
@@ -41,4 +41,4 @@ class Wordle:
 if __name__ == "__main__":
     
     new_game = Wordle()
-    new_game.guess_word("chair")
+    new_game.guess_word("adieu")
