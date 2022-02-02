@@ -1,5 +1,4 @@
 from tkinter import *
-from matplotlib.pyplot import grid
 import pandas as pd
 
 def get_input():
