@@ -11,9 +11,7 @@ class Wordle:
             self.word_dict = [x.replace('\n','') for x in file.readlines()]
 
         # generate key word, number of remaining guesses, and guess list
-        # self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
-        self.key_word = "rylee"
-        print(self.key_word)
+        self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
         self.num_guesses = 6
         self.guesses = []
 
