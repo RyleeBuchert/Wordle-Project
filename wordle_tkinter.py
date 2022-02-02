@@ -13,12 +13,12 @@ if __name__ == "__main__":
 
     wordle_window = Tk()
     wordle_window.title('WORDLE')
-    wordle_window.geometry('270x450')
+    wordle_window.geometry('292x435')
 
     box_list = pd.DataFrame(index=range(6), columns=range(5))
     for i in range(6):
         for j in range(5):
-            grid_box = Text(wordle_window, height=3, width=5, bg="light cyan")
+            grid_box = Text(wordle_window, height=2, width=4, bg="light cyan", font='Rubik')
             grid_box.grid(row= i, column= j, padx=5, pady=5)
             box_list.iloc[i][j] = grid_box
 
