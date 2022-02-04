@@ -1,5 +1,8 @@
+from collections import Counter
+from tkinter import messagebox
 from tkinter import *
 import pandas as pd
+import numpy as np
 import random
 
 class Wordle:
@@ -11,7 +14,8 @@ class Wordle:
             self.word_dict = [x.replace('\n','') for x in file.readlines()]
 
         # generate key word, number of remaining guesses, and guess list
-        self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
+        # self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
+        self.key_word = "elegy"
         self.num_guesses = 6
         self.guesses = []
 
@@ -42,8 +46,8 @@ class Wordle:
         guess_label.grid(row=7, column=1, columnspan=3)
 
         self.wordle_input = StringVar()
-        guess_entry = Entry(frame, textvariable=self.wordle_input)
-        guess_entry.grid(row=8, column=1, columnspan=3)
+        self.guess_entry = Entry(frame, textvariable=self.wordle_input)
+        self.guess_entry.grid(row=8, column=1, columnspan=3)
 
         guess_button = Button(frame, text="Submit", command=self.get_input)
         guess_button.grid(row=9, column=2, pady=5)
@@ -51,41 +55,55 @@ class Wordle:
         # run wordle window
         wordle_window.mainloop()    
 
+    # method to obtain input from entry box and color the grid boxes
     def get_input(self):
         wordle_word = self.wordle_input.get()
         results = self.guess_word(wordle_word)
-        for i in range(len(wordle_word)):
-            if results[i] == 0:
-                self.box_list.iloc[self.current_row][i].configure(font=('Helvetica', 50))
-            elif results[i] == 1:
-                self.box_list.iloc[self.current_row][i].configure(bg='yellow', font=('Helvetica', 50))
-            elif results[i] == 2:
-                self.box_list.iloc[self.current_row][i].configure(bg='green', font=('Helvetica', 50))
-            self.box_list.iloc[self.current_row][i].insert("1.0", wordle_word[i].upper())
-            self.box_list.iloc[self.current_row][i].tag_add("center", "1.0", "end")
-        self.current_row += 1
+        self.guess_entry.delete(0, END)
+        if results is None:
+            return
+        else:
+            for i in range(len(wordle_word)):
+                if results[i] == 0:
+                    self.box_list.iloc[self.current_row][i].configure(font=('Helvetica', 50))
+                elif results[i] == 1:
+                    self.box_list.iloc[self.current_row][i].configure(bg='yellow', font=('Helvetica', 50))
+                elif results[i] == 2:
+                    self.box_list.iloc[self.current_row][i].configure(bg='green', font=('Helvetica', 50))
+                self.box_list.iloc[self.current_row][i].insert("1.0", wordle_word[i].upper())
+                self.box_list.iloc[self.current_row][i].tag_add("center", "1.0", "end")
+            self.current_row += 1
+            if (len(np.unique(results)) == 1) and (results[0] == 2):
+                    messagebox.showinfo("Wowza", "You got it right :)")
 
+    # method to input guess and get results
     def guess_word(self, input):
         if self.num_guesses == 0:
-            return 'Out of Guesses --- LOSER!!!'
+            messagebox.showinfo("Error", "Out of guesses.")
+            return
         
         guess = input.lower()
         if guess not in self.word_dict:
-            return 'Invalid Input --- Not in Word List'
+            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
+            return
         elif len(guess) > 5:
-            return 'Invalid Input --- Too Big'
+            messagebox.showinfo("Error", "Invalid Input: Too many characters.")
+            return
         elif len(guess) < 5:
-            return 'Invalid Input --- Too Small'
+            messagebox.showinfo("Error", "Invalid Input: Too few characters.")
+            return
         
         self.guesses.append(guess)
         results_list = [0]*len(guess)
+        letters = Counter(self.key_word)
         for i in range(len(guess)):
             if guess[i] == self.key_word[i]:
                 results_list[i] = 2
-            elif guess[i] in self.key_word:
+                letters[guess[i]] -= 1
+        for i in range(len(guess)):
+            if (guess[i] in self.key_word) and (results_list[i] != 2) and (letters[guess[i]] > 0):
                 results_list[i] = 1
-            else:
-                results_list[i] = 0
+                letters[guess[i]] -= 1
         self.num_guesses -= 1
 
         return(results_list)
