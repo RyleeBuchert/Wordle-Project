@@ -35,15 +35,16 @@ class Wordle:
             return
         
         guess = input.lower()
-        if guess not in self.word_dict:
-            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
-            return
-        elif len(guess) > 5:
+        if len(guess) > 5:
             messagebox.showinfo("Error", "Invalid Input: Too many characters.")
             return
         elif len(guess) < 5:
             messagebox.showinfo("Error", "Invalid Input: Too few characters.")
             return
+        elif guess not in self.word_dict:
+            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
+            return
+
         
         self.guesses.append(guess)
         results_list = [0]*len(guess)
