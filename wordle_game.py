@@ -1,31 +1,26 @@
 from collections import Counter
+from wordle import Wordle
 from tkinter import messagebox
 from tkinter import *
+from turtle import update
 import pandas as pd
 import numpy as np
 import random
 
-class Wordle:
+class Wordle_Game:
 
     def __init__(self):
-        
-        # get word dictionary from word_dict.txt
-        with open('data\\word_dict.txt') as file:
-            self.word_dict = [x.replace('\n','') for x in file.readlines()]
 
-        # generate key word, number of remaining guesses, and guess list
-        # self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
-        self.key_word = "elegy"
-        self.num_guesses = 6
-        self.guesses = []
+        # create wordle cgame
+        self.wordle = Wordle()
 
         # initiate wordle tkinter gui
-        wordle_window = Tk()
-        wordle_window.title("RYLEE WORDLE")
-        wordle_window.geometry('400x600')
+        self.wordle_window = Tk()
+        self.wordle_window.title("RYLEE WORDLE")
+        self.wordle_window.geometry('400x600')
 
         # create a frame for the box grid
-        frame = Frame(wordle_window, width=400, height=600)
+        frame = Frame(self.wordle_window, width=400, height=600)
         frame.grid(row=0, column=0)
         frame.grid_propagate(0)
 
@@ -52,13 +47,14 @@ class Wordle:
         guess_button = Button(frame, text="Submit", command=self.get_input)
         guess_button.grid(row=9, column=2, pady=5)
 
-        # run wordle window
-        wordle_window.mainloop()    
+   # method to launch gui for playing the game
+    def launch_game(self):
+        self.wordle_window.mainloop() 
 
     # method to obtain input from entry box and color the grid boxes
     def get_input(self):
         wordle_word = self.wordle_input.get()
-        results = self.guess_word(wordle_word)
+        results = self.wordle.guess_word(wordle_word)
         self.guess_entry.delete(0, END)
         if results is None:
             return
@@ -75,40 +71,10 @@ class Wordle:
             self.current_row += 1
             if (len(np.unique(results)) == 1) and (results[0] == 2):
                     messagebox.showinfo("Wowza", "You got it right :)")
-
-    # method to input guess and get results
-    def guess_word(self, input):
-        if self.num_guesses == 0:
-            messagebox.showinfo("Error", "Out of guesses.")
-            return
-        
-        guess = input.lower()
-        if guess not in self.word_dict:
-            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
-            return
-        elif len(guess) > 5:
-            messagebox.showinfo("Error", "Invalid Input: Too many characters.")
-            return
-        elif len(guess) < 5:
-            messagebox.showinfo("Error", "Invalid Input: Too few characters.")
-            return
-        
-        self.guesses.append(guess)
-        results_list = [0]*len(guess)
-        letters = Counter(self.key_word)
-        for i in range(len(guess)):
-            if guess[i] == self.key_word[i]:
-                results_list[i] = 2
-                letters[guess[i]] -= 1
-        for i in range(len(guess)):
-            if (guess[i] in self.key_word) and (results_list[i] != 2) and (letters[guess[i]] > 0):
-                results_list[i] = 1
-                letters[guess[i]] -= 1
-        self.num_guesses -= 1
-
-        return(results_list)
+        return results
 
 
 if __name__ == "__main__":
-    
-    new_game = Wordle()
+
+    new_game = Wordle_Game()
+    new_game.launch_game()
