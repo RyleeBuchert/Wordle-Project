@@ -139,4 +139,5 @@ class Wordle:
 if __name__ == "__main__":
     
     new_game = Wordle()
-    new_game.narrow_search('tares', [0,2,0,0,0])
+    new_game.narrow_search('tares',[0,0,0,0,2])
+    print(new_game.pick_word())
