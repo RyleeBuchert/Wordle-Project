@@ -25,8 +25,9 @@ class Wordle:
         self.remaining_letters = letters
         char_freq_dict = {i: [0]*5 for i in letters}
         for word in self.word_dict:
-            for i in range(len(word)):
-                char_freq_dict[word[i]][i] += 1
+            for i, char in enumerate(word):
+                char_freq_dict[char][i] += 1
+        self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()
 
     # method to input guess and get results
     def guess_word(self, input):
@@ -44,19 +45,18 @@ class Wordle:
         elif guess not in self.word_dict:
             messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
             return
-
         
         self.guesses.append(guess)
         results_list = [0]*len(guess)
         letters = Counter(self.key_word)
-        for i in range(len(guess)):
-            if guess[i] == self.key_word[i]:
+        for i, char in enumerate(guess):
+            if char == self.key_word[i]:
                 results_list[i] = 2
-                letters[guess[i]] -= 1
-        for i in range(len(guess)):
-            if (guess[i] in self.key_word) and (results_list[i] != 2) and (letters[guess[i]] > 0):
+                letters[char] -= 1
+        for i, char in enumerate(guess):
+            if (char in self.key_word) and (results_list[i] != 2) and (letters[char] > 0):
                 results_list[i] = 1
-                letters[guess[i]] -= 1
+                letters[char] -= 1
         self.num_guesses -= 1
         return(results_list)
 
@@ -79,17 +79,64 @@ class Wordle:
                     if word[index] != guess[index]:
                         word_status = 'Excluded'
                 if word_status == 'Included':
-                    temp_remaining_words.remaining_words.append(word)
+                    temp_remaining_words.append(word)
             self.remaining_words = temp_remaining_words
 
         # index of character in guess with result = '1'
         one_index = [i for i in range(len(results)) if results[i] == 1]
-        if len(one_index) != 0:
+        if one_index:
             temp_remaining_words = []
             for index in one_index:
                 temp_remaining_words.append([word for word in self.remaining_words if guess[index] in word])
             self.remaining_words = temp_remaining_words[0]
 
+        # update character frequency dataframe
+        char_freq_dict = {i: [0]*5 for i in self.remaining_letters}
+        for word in self.remaining_words:
+            for i, char in enumerate(word):
+                char_freq_dict[char][i] += 1
+        self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()   
+
+    # method to calculate entropy for all words and pick best
+    def pick_word(self):
+        best_word = ""
+        best_entropy = 0
+        for word in self.remaining_words:
+            word_entropy = 0
+            seen_chars = set()
+            for i, char in enumerate(word):
+                green = self.char_freq_df.loc[char][i]
+                if char not in seen_chars:
+                    indexes = list(range(5))
+                    yellow = 0
+                    for idx in indexes:
+                        yellow += self.char_freq_df.loc[char][idx]
+                    yellow -= green
+                    seen_chars.add(char)
+                else:
+                    yellow = 0
+                if (len(self.remaining_words) - green - yellow) < 0:
+                    prob_list = [green, yellow, 0]
+                    prob_list = [num / (green + yellow) for num in prob_list]
+                else:
+                    grey = len(self.remaining_words) - green - yellow
+                    prob_list = [green, yellow, grey]
+                    prob_list = [num / len(self.remaining_words) for num in prob_list]
+                for j in prob_list:
+                    word_entropy += self.entropy(j)
+            if word_entropy > best_entropy:
+                best_entropy = word_entropy
+                best_word = word
+        return best_word
+
+    # method to calculate entropy for probability distribution
+    def entropy(self, q):
+        if q == 0 or q == 1:
+            return 0
+        else:
+            return (-1 * q) * np.log2(q)
+
 if __name__ == "__main__":
     
     new_game = Wordle()
+    new_game.narrow_search('tares', [0,2,0,0,0])
