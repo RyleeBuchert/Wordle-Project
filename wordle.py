@@ -15,7 +15,9 @@ class Wordle:
             self.word_dict = [x.replace('\n','') for x in file.readlines()]
 
         # generate key word, number of remaining guesses, and guess list
-        self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
+        # self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
+        self.key_word = 'apple'
+        self.word_so_far = '00000'
         self.num_guesses = 6
         self.guesses = []
 
@@ -95,7 +97,15 @@ class Wordle:
         for word in self.remaining_words:
             for i, char in enumerate(word):
                 char_freq_dict[char][i] += 1
-        self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()   
+        self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()
+
+        # get known letters string for pick_word method
+        self.word_so_far = ""
+        for i, char in enumerate(guess):
+            if results[i] == 2:
+                self.word_so_far += char
+            else:
+                self.word_so_far += '0'
 
     # method to calculate entropy for all words and pick best
     def pick_word(self):
@@ -107,21 +117,14 @@ class Wordle:
             for i, char in enumerate(word):
                 green = self.char_freq_df.loc[char][i]
                 if char not in seen_chars:
-                    indexes = list(range(5))
-                    yellow = 0
-                    for idx in indexes:
-                        yellow += self.char_freq_df.loc[char][idx]
-                    yellow -= green
+                    mask = [ch != char for ch in self.word_so_far]
+                    yellow = sum(self.char_freq_df.loc[char][mask]) - green
                     seen_chars.add(char)
                 else:
                     yellow = 0
-                if (len(self.remaining_words) - green - yellow) < 0:
-                    prob_list = [green, yellow, 0]
-                    prob_list = [num / (green + yellow) for num in prob_list]
-                else:
-                    grey = len(self.remaining_words) - green - yellow
-                    prob_list = [green, yellow, grey]
-                    prob_list = [num / len(self.remaining_words) for num in prob_list]
+                grey = len(self.remaining_words) - green - yellow
+                prob_list = [green, yellow, grey]
+                prob_list = [num / len(self.remaining_words) for num in prob_list]
                 for j in prob_list:
                     word_entropy += self.entropy(j)
             if word_entropy > best_entropy:
@@ -139,5 +142,3 @@ class Wordle:
 if __name__ == "__main__":
     
     new_game = Wordle()
-    new_game.narrow_search('tares',[0,0,0,0,2])
-    print(new_game.pick_word())
