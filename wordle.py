@@ -30,6 +30,7 @@ class Wordle:
             for i, char in enumerate(word):
                 char_freq_dict[char][i] += 1
         self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()
+        self.row_sums = self.char_freq_df.sum(axis=1)
 
     # method to input guess and get results
     def guess_word(self, input):
@@ -98,6 +99,7 @@ class Wordle:
             for i, char in enumerate(word):
                 char_freq_dict[char][i] += 1
         self.char_freq_df = pd.DataFrame(char_freq_dict).transpose()
+        self.row_sums = self.char_freq_df.sum(axis=1)
 
         # get known letters string for pick_word method
         self.word_so_far = ""
@@ -122,9 +124,13 @@ class Wordle:
                     seen_chars.add(char)
                 else:
                     yellow = 0
-                grey = len(self.remaining_words) - green - yellow
-                prob_list = [green, yellow, grey]
-                prob_list = [num / len(self.remaining_words) for num in prob_list]
+                if self.row_sums[char] > len(self.remaining_words):
+                    prob_list = [green, yellow, 0]
+                    prob_list = [num / (green + yellow) for num in prob_list]
+                else:
+                    grey = len(self.remaining_words) - green - yellow
+                    prob_list = [green, yellow, grey]
+                    prob_list = [num / len(self.remaining_words) for num in prob_list]
                 for j in prob_list:
                     word_entropy += self.entropy(j)
             if word_entropy > best_entropy:
@@ -139,6 +145,19 @@ class Wordle:
         else:
             return (-1 * q) * np.log2(q)
 
+    # method to test model accuracy
+    def test_model(self):
+        guess = 'tares'
+        while self.num_guesses > 0:
+            if not guess:
+                guess = self.pick_word()
+            results = self.guess_word(guess)
+            print(guess, "--- ", end="")
+            print(results)
+            self.narrow_search(guess, results)
+            guess = ""
+
 if __name__ == "__main__":
     
     new_game = Wordle()
+    new_game.test_model()
