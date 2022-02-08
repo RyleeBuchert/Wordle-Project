@@ -49,24 +49,37 @@ class Wordle_Game:
 
    # method to launch gui for playing the game
     def launch_game(self):
-        self.wordle_window.mainloop() 
+        self.wordle_window.mainloop()
 
     # method to obtain input from entry box and color the grid boxes
     def get_input(self):
-        wordle_word = self.wordle_input.get()
-        results = self.wordle.guess_word(wordle_word)
+        wordle_guess = self.wordle_input.get().lower()
+        if self.wordle.num_guesses == 0:
+            messagebox.showinfo("Error", "Out of guesses.")
+            return
+        if len(wordle_guess) > 5:
+            messagebox.showinfo("Error", "Invalid Input: Too many characters.")
+            return
+        elif len(wordle_guess) < 5:
+            messagebox.showinfo("Error", "Invalid Input: Too few characters.")
+            return
+        elif wordle_guess not in self.wordle.word_dict:
+            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
+            return
+        
+        results = self.wordle.guess_word(wordle_guess)
         self.guess_entry.delete(0, END)
         if results is None:
             return
         else:
-            for i in range(len(wordle_word)):
+            for i in range(len(wordle_guess)):
                 if results[i] == 0:
                     self.box_list.iloc[self.current_row][i].configure(font=('Helvetica', 50))
                 elif results[i] == 1:
                     self.box_list.iloc[self.current_row][i].configure(bg='yellow', font=('Helvetica', 50))
                 elif results[i] == 2:
                     self.box_list.iloc[self.current_row][i].configure(bg='green', font=('Helvetica', 50))
-                self.box_list.iloc[self.current_row][i].insert("1.0", wordle_word[i].upper())
+                self.box_list.iloc[self.current_row][i].insert("1.0", wordle_guess[i].upper())
                 self.box_list.iloc[self.current_row][i].tag_add("center", "1.0", "end")
             self.current_row += 1
             if (len(np.unique(results)) == 1) and (results[0] == 2):

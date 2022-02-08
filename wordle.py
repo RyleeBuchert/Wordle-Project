@@ -16,7 +16,7 @@ class Wordle:
 
         # generate key word, number of remaining guesses, and guess list
         # self.key_word = self.word_dict[random.randrange(0, len(self.word_dict))]
-        self.key_word = 'apple'
+        self.key_word = 'liken'
         self.word_so_far = '00000'
         self.num_guesses = 6
         self.guesses = []
@@ -34,21 +34,7 @@ class Wordle:
 
     # method to input guess and get results
     def guess_word(self, input):
-        if self.num_guesses == 0:
-            messagebox.showinfo("Error", "Out of guesses.")
-            return
-        
         guess = input.lower()
-        if len(guess) > 5:
-            messagebox.showinfo("Error", "Invalid Input: Too many characters.")
-            return
-        elif len(guess) < 5:
-            messagebox.showinfo("Error", "Invalid Input: Too few characters.")
-            return
-        elif guess not in self.word_dict:
-            messagebox.showinfo("Error", "Invalid Input: Not in Word List.")
-            return
-        
         self.guesses.append(guess)
         results_list = [0]*len(guess)
         letters = Counter(self.key_word)
@@ -61,10 +47,23 @@ class Wordle:
                 results_list[i] = 1
                 letters[char] -= 1
         self.num_guesses -= 1
-        return(results_list)
+        return results_list
 
     # method to narrow search field based on results
     def narrow_search(self, guess, results):
+        
+        # # updated bad_letters loop --- to do
+        # bad_letters = {char: i for i, char in enumerate(guess) if results[i] == 0}
+        # if bad_letters:
+        #     temp_remaining_words = []
+        #     for word in self.remaining_words:
+        #         for i, char in enumerate(word):
+        #             if 
+                    
+        #             if char not in bad_letters:
+        #                 if i != bad_letters[char]: 
+        #                     temp_remaining_words.append()
+        #     self.remaining_words = temp_remaining_words
         
         # get rid of characters with result = '0'
         bad_letters = "".join(sorted(set([guess[i] for i in range(len(guess)) if results[i] == 0])))
@@ -119,12 +118,13 @@ class Wordle:
             for i, char in enumerate(word):
                 green = self.char_freq_df.loc[char][i]
                 if char not in seen_chars:
-                    mask = [ch != char for ch in self.word_so_far]
-                    yellow = sum(self.char_freq_df.loc[char][mask]) - green
+                    indexes = list(range(5))
+                    indexes.remove(i)
+                    yellow = sum(self.char_freq_df.loc[char][indexes])
                     seen_chars.add(char)
                 else:
                     yellow = 0
-                if self.row_sums[char] > len(self.remaining_words):
+                if self.row_sums[char] >= len(self.remaining_words):
                     prob_list = [green, yellow, 0]
                     prob_list = [num / (green + yellow) for num in prob_list]
                 else:
@@ -148,12 +148,20 @@ class Wordle:
     # method to test model accuracy
     def test_model(self):
         guess = 'tares'
-        while self.num_guesses > 0:
+        guess_status = False
+        while guess_status is False:
+            if self.num_guesses == 0:
+                print("Incorrect, the word is", self.key_word)
+                break
             if not guess:
                 guess = self.pick_word()
             results = self.guess_word(guess)
+            results_set = set(results)
             print(guess, "--- ", end="")
             print(results)
+            if (len(results_set) == 1) and (2 in results_set):
+                print(guess, "is correct!")
+                guess_status = True
             self.narrow_search(guess, results)
             guess = ""
 
